@@ -18,8 +18,8 @@ export const getOneTransaction = async (req, res) => {
       return res.status(404).json({ error: "Transacción no encontrada" });
     }
     return res.status(200).json({ transaction });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 };
 
