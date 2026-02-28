@@ -19,24 +19,26 @@ JWT Authentication
 Swagger (OpenAPI)
 
 Project Structure
-src/
- ├── config/
- │     ├── prisma.js
- │     ├── swagger.js
- │     ├── swagger.path.js
- │     └── swagger.schema.js
- │
- └── modules/
-       ├── auth/
-       │     ├── auth.controller.js
-       │     ├── auth.routes.js
-       │     ├── auth.service.js
-       │     └── auth.middleware.js
-       │
-       ├── transactions/
-       ├── category/
-       └── reports/
 
+```
+src/
+├── config/
+│   ├── prisma.js
+│   ├── swagger.js
+│   ├── swagger.path.js
+│   └── swagger.schema.js
+│
+└── modules/
+    ├── auth/
+    │   ├── auth.controller.js
+    │   ├── auth.routes.js
+    │   ├── auth.service.js
+    │   └── auth.middleware.js
+    │
+    ├── transactions/
+    ├── category/
+    └── reports/
+```
 
 The project follows a modular structure where each domain encapsulates its controller, routes, services, and domain-specific middleware.
 
@@ -66,7 +68,6 @@ Required variables
 PORT=
 DATABASE_URL=
 JWT_SECRET=
-
 
 Do not commit your .env file.
 
@@ -102,8 +103,8 @@ Once the server is running, access the documentation at:
 http://localhost:PORT/api-docs
 
 Available Scripts
-npm run dev       # Start development server
-npm run start     # Start production server
+npm run dev # Start development server
+npm run start # Start production server
 npx prisma studio # Open Prisma Studio
 
 Authentication
@@ -111,6 +112,5 @@ Authentication
 Protected routes require a Bearer token:
 
 Authorization: Bearer <your_token>
-
 
 JWT validation is handled by auth.middleware.js inside the auth module.
