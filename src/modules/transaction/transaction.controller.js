@@ -25,20 +25,31 @@ export const getOneTransaction = async (req, res) => {
 
 export const createTransaction = async (req, res) => {
   try {
-    if (
-      req.body.amount == null ||
-      !req.body.type ||
-      !req.body.categoryId ||
-      !req.body.date
-    ) {
+    const { amount, categoryId, date, description } = req.body;
+
+    if (amount == null || !categoryId || !date) {
       return res.status(400).json({
         error: "Faltan campos obligatorios",
       });
     }
+
+    /*
+      Normalizamos la fecha:
+      - Convertimos a objeto Date
+      - Forzamos hora 00:00:00 en UTC
+      - Evitamos desplazamientos por timezone
+    */
+    const normalizedDate = new Date(date);
+    normalizedDate.setUTCHours(0, 0, 0, 0);
+
     const newTransaction = await sTransaction.create({
-      ...req.body,
+      amount,
+      date: normalizedDate,
+      description,
       userId: req.user.id,
+      categoryId,
     });
+
     return res.status(201).json({
       message: "Transaccion creada con exito",
       transaction: newTransaction,

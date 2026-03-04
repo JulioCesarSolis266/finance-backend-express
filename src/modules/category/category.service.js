@@ -2,14 +2,27 @@ import { TransactionType } from "@prisma/client";
 import { prisma } from "../../config/prisma.js";
 
 const sCategory = {
-  getAll: async (userId) => {
-    return await prisma.category.findMany({
-      where: { userId },
-    });
+  getAll: async (userId, options = {}) => {
+    const { type } = options;
+    const where = { userId };
+
+    if (type) {
+      const normalizedType = type.toUpperCase();
+
+      if (!Object.values(TransactionType).includes(normalizedType)) {
+        throw new Error("Tipo inválido");
+      }
+
+      where.type = normalizedType;
+    }
+
+    return await prisma.category.findMany({ where });
   },
 
   getOne: async (id, userId) => {
-    return await prisma.category.findFirst({ where: { id, userId } });
+    return await prisma.category.findFirst({
+      where: { id, userId },
+    });
   },
 
   create: async (data, userId) => {
@@ -26,48 +39,64 @@ const sCategory = {
     }
 
     try {
-      const newCategory = await prisma.category.create({
+      return await prisma.category.create({
         data: {
           name,
           type: normalizedType,
           userId,
         },
       });
-
-      return newCategory;
     } catch (error) {
       throw new Error("Error al crear la categoría");
     }
   },
 
   update: async (id, userId, data) => {
-    const category = await prisma.category.findFirst({ where: { id, userId } });
+    const category = await prisma.category.findFirst({
+      where: { id, userId },
+    });
 
     if (!category) return null;
 
+    // Campos no modificables
     delete data.userId;
     delete data.id;
     delete data.createdAt;
     delete data.updatedAt;
 
+    // Si se intenta actualizar el type, validarlo
+    if (data.type) {
+      const normalizedType = data.type.toUpperCase();
+
+      if (!Object.values(TransactionType).includes(normalizedType)) {
+        throw new Error("Tipo de transacción inválido");
+      }
+
+      data.type = normalizedType;
+    }
+
     try {
-      const updatedCategory = await prisma.category.update({
+      return await prisma.category.update({
         where: { id },
         data,
       });
-      return updatedCategory;
     } catch (error) {
-      throw new Error({ error: "Error al actualizar la categoria" });
+      throw new Error("Error al actualizar la categoria");
     }
   },
 
   delete: async (id, userId) => {
-    const category = await prisma.category.findFirst({ where: { id, userId } });
+    const category = await prisma.category.findFirst({
+      where: { id, userId },
+    });
+
     if (!category) return null;
+
     try {
-      const deleteCategory = await prisma.category.delete({ where: id });
-      return deleteCategory;
-    } catch (err) {
+      return await prisma.category.delete({
+        where: { id },
+      });
+    } catch (error) {
       throw new Error("Error al eliminar la categoria");
     }
   },

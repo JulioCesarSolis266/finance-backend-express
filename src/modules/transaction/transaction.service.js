@@ -11,26 +11,16 @@ const sTransaction = {
   getOne: async (id, userId) => {
     return await prisma.transaction.findFirst({ where: { id, userId } });
   },
-  create: async ({ amount, type, date, description, userId, categoryId }) => {
-    if (!amount || !type || !date || !categoryId) {
+  create: async ({ amount, date, description, userId, categoryId }) => {
+    if (!amount || !date || !categoryId) {
       throw new Error("Faltan campos obligatorios");
     }
 
-    if (isNaN(amount)) {
-      throw new Error("El monto debe ser numérico");
+    if (isNaN(amount) || Number(amount) <= 0) {
+      throw new Error("El monto debe ser numérico y mayor a 0");
     }
 
-    if (Number(amount) <= 0) {
-      throw new Error("El monto debe ser mayor a 0");
-    }
-
-    const normalizedType = type.toUpperCase();
-
-    if (!Object.values(TransactionType).includes(normalizedType)) {
-      throw new Error("Tipo inválido");
-    }
-
-    // Verificar que la categoría pertenezca al usuario
+    // Verificar categoría
     const category = await prisma.category.findFirst({
       where: {
         id: categoryId,
@@ -44,12 +34,12 @@ const sTransaction = {
 
     return await prisma.transaction.create({
       data: {
-        amount, // string → Prisma Decimal
-        type: normalizedType,
+        amount,
         date: new Date(date),
         description,
         userId,
         categoryId,
+        type: category.type, // ← consistencia garantizada
       },
     });
   },
@@ -61,34 +51,18 @@ const sTransaction = {
 
     if (!transaction) return null;
 
-    // Campos no modificables
+    // Eliminar campos protegidos
     delete data.userId;
     delete data.id;
     delete data.createdAt;
     delete data.updatedAt;
+    delete data.type; // ← mejor no permitir actualización directa
 
-    // Determinar estado final
-    const finalType = data.type ? data.type.toUpperCase() : transaction.type;
-
-    const finalCategoryId = data.categoryId || transaction.categoryId;
-
+    const finalCategoryId = data.categoryId ?? transaction.categoryId;
     const finalAmount = data.amount ?? transaction.amount;
     const finalDate = data.date ?? transaction.date;
 
-    // Validaciones
-    if (data.amount !== undefined) {
-      if (isNaN(data.amount) || Number(data.amount) <= 0) {
-        throw new Error("El monto debe ser numérico y mayor a 0");
-      }
-    }
-
-    if (data.type) {
-      if (!Object.values(TransactionType).includes(finalType)) {
-        throw new Error("Tipo inválido");
-      }
-    }
-
-    // Verificar categoría
+    // Validar categoría
     const category = await prisma.category.findFirst({
       where: { id: finalCategoryId, userId },
     });
@@ -97,23 +71,26 @@ const sTransaction = {
       throw new Error("Categoría inválida");
     }
 
-    // Validación crítica de coherencia
-    if (category.type !== finalType) {
-      throw new Error("El tipo no coincide con la categoría");
+    // Validar monto
+    if (data.amount !== undefined) {
+      if (isNaN(data.amount) || Number(data.amount) <= 0) {
+        throw new Error("El monto debe ser numérico y mayor a 0");
+      }
     }
 
-    // Construcción controlada del update
-    const updateData = {
-      ...(data.amount && { amount: data.amount }),
-      ...(data.type && { type: finalType }),
-      ...(data.date && { date: new Date(finalDate) }),
-      ...(data.description !== undefined && { description: data.description }),
-      ...(data.categoryId && { categoryId: finalCategoryId }),
-    };
-
+    // Construcción controlada
     return await prisma.transaction.update({
       where: { id },
-      data: updateData,
+      data: {
+        amount: finalAmount,
+        date: new Date(finalDate),
+        description:
+          data.description !== undefined
+            ? data.description
+            : transaction.description,
+        categoryId: finalCategoryId,
+        type: category.type, // ← siempre derivado
+      },
     });
   },
 
