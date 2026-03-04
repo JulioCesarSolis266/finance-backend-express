@@ -1,5 +1,7 @@
-import { TransactionType } from "@prisma/client";
+import pkg from "@prisma/client";
 import { prisma } from "../../config/prisma.js";
+
+const { TransactionType } = pkg;
 
 const sCategory = {
   getAll: async (userId, options = {}) => {
