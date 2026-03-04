@@ -1,5 +1,7 @@
 import reportService from "./report.service.js";
-import { TransactionType } from "@prisma/client";
+import pkg from "@prisma/client";
+
+const { TransactionType } = pkg;
 
 export const getBalance = async (req, res) => {
   try {
