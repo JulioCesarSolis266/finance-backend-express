@@ -1,5 +1,4 @@
 import { prisma } from "../../config/prisma.js";
-import { TransactionType } from "@prisma/client";
 
 const sTransaction = {
   getAll: async (userId) => {

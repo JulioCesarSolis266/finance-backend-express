@@ -1,6 +1,7 @@
 import { prisma } from "../../config/prisma.js";
-import { TransactionType } from "@prisma/client";
-import { getSummaryByCategory } from "./report.controller.js";
+import pkg from "@prisma/client";
+
+const { TransactionType } = pkg;
 
 const reportService = {
   async getBalance(userId, { from, to } = {}) {
