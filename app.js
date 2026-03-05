@@ -15,7 +15,11 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:4173",
+      "https://tu-app.vercel.app",
+    ],
     credentials: true,
   }),
 ); //Esto permite al backend hacer la conexion con el frontend
