@@ -4,6 +4,10 @@ const sTransaction = {
   getAll: async (userId) => {
     return await prisma.transaction.findMany({
       where: { userId },
+      include: {
+        category: true,
+        user: true,
+      },
     });
   },
 
